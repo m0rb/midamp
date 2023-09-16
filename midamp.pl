@@ -96,7 +96,8 @@ get '/ff' => sub {
   my $fn = rf($log,{chomp=>1});
   if ( -s $log ) {
   stopit();
-  my $idx = first($fn,@files)++;
+  my $idx = first($fn,@files);
+  $idx++;
   wf($log,$files[$idx]);
   fork 
       and return &hHeader("Fast Forward",$hh).
@@ -132,7 +133,8 @@ sub bgplayback {
    if ($pn) {
       my $fn = rf($log,{chomp=>1});
       if ( -s $log ) {
-         my $idx = &first($fn,@files)++;
+         my $idx = &first($fn,@files);
+         $idx++;
          if ( $idx <= $#files ) {
             my $next = $files[$idx];
             wf($log,$next);
