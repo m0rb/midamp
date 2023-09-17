@@ -27,10 +27,11 @@ get '/' => sub {
    my $hh     = request->host;
    my $output = rf( $log, { chomp => 1 } );
    return &hHeader($hh)
-     . "<BR><BR><h3>NOW PLAYING: $output</h3><BR><BR><A HREF=\"/playrandom\">
-   <IMG SRC=\"$pi\"></A><A HREF=\"/stop\"><img src=\"$si\"></A>
-   <A HREF=\"/rewind\"><IMG SRC=\"$re\"></A><A HREF=\"/ff\"><IMG SRC=\"$ff\">
-   </A><BR><A HREF=\"/playlist\"><IMG SRC=\"$pls\"></A><BR>" . &hFooter;
+     . "<H2>MIDamp<H2><BR><IFRAME SRC=\"/current\"></IFRAME><BR><BR>
+     <A HREF=\"/playrandom\"><IMG SRC=\"$pi\"></A><A HREF=\"/stop\">
+     <img src=\"$si\"></A><A HREF=\"/rewind\"><IMG SRC=\"$re\"></A>
+     <A HREF=\"/ff\"><IMG SRC=\"$ff\"></A><BR><A HREF=\"/playlist\">
+     <IMG SRC=\"$pls\"></A><BR>" . &hFooter;
 };
 
 get '/playlist' => sub {
@@ -104,6 +105,14 @@ get '/rewind' => sub {
         and return &hHeader( "Rewinding...", $hh ) . &hFooter;
       playback($fn);
    }
+};
+
+get '/current' => sub {
+   my $hh = request->host . "/current";
+   my $fn = rf( $log, { chomp => 1 } );
+
+   return &hHeader( "Now Playing", $hh ) . "Now Playing: $fn" . &hFooter;
+
 };
 
 sub playback {
@@ -191,7 +200,7 @@ sub hHeader {
    ($ref) and $out .= "<META http-equiv=refresh content=\"
     $sleep; url=http://$ref\">" or true;
    $out .= "</HEAD><BODY BGCOLOR=\"#000\"><FONT COLOR=\"#0D0\">
-  <CENTER><H2>MIDamp</H2>";
+  <CENTER>";
 
    return $out;
 }
