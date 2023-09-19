@@ -12,11 +12,11 @@ my @files = `ls *.mid *.MID`;
 my $apmargs = "/usr/bin/aplaymidi -p16:0";
 my $randfile;
 
-my $pi  = packimage("images/play.png");
-my $si  = packimage("images/stop.png");
-my $pls = packimage("images/pls.png");
-my $ff  = packimage("images/ff.png");
-my $re  = packimage("images/rewind.png");
+my $pi  = packimage( "images/play.png" );
+my $si  = packimage( "images/stop.png" );
+my $pls = packimage( "images/pls.png" );
+my $ff  = packimage( "images/ff.png" );
+my $re  = packimage( "images/rewind.png" );
 
 my $log = "log.txt";
 
@@ -27,19 +27,18 @@ get '/' => sub {
    my $hh     = request->host;
    my $output = rf( $log, { chomp => 1 } );
    return &hHeader($hh)
-     . "<H2>MIDamp<H2><BR><IFRAME SRC=\"/current\"></IFRAME><BR><BR>
-     <A HREF=\"/playrandom\"><IMG SRC=\"$pi\"></A><A HREF=\"/stop\">
-     <img src=\"$si\"></A><A HREF=\"/rewind\"><IMG SRC=\"$re\"></A>
-     <A HREF=\"/ff\"><IMG SRC=\"$ff\"></A><BR><A HREF=\"/playlist\">
-     <IMG SRC=\"$pls\"></A><BR>" . &hFooter;
+     . h( 2, "MIDamp" ) . &br . iframe( "/current" ) . &br . &br
+     . href( "/playrandom", img( $pi ) ) . href( "/stop", img($si) )
+     . href( "/rewind", img( $re ) ) .href( "/ff", img($ff)) .&br
+     . href( "/playlist", img($pls)) .&hFooter;
 };
 
 get '/playlist' => sub {
    my $hh    = request->host;
-   my $out   = &hHeader("Playlist");
+   my $out   = hHeader( "Playlist" );
    my $index = 0;
    foreach (@files) {
-      $out .= "<a href=\"http://$hh/playnum/$index\">$index: $_</a><br>\n";
+      $out .= href( "http://$hh/playnum/$index", "$index: $_" ) . &br;
       $index++;
    }
    $out .= &hFooter;
@@ -53,9 +52,7 @@ get '/playrandom' => sub {
    my $hh = request->host;
    $randfile = randfile();
    fork
-     and return &hHeader( "Random File", $hh )
-     . "<H2>$randfile</H2>"
-     . &hFooter;
+     and return hHeader( "Random File", $hh ) . h(2,$randfile) . &hFooter;
    wf( $log, $randfile );
    playback($randfile);
 };
@@ -67,9 +64,8 @@ get '/playnum/:id' => sub {
    my $id   = route_parameters->get('id');
    my $file = $files[$id];
    fork
-     and return &hHeader( "Play FileNo", $hh )
-     . "<BR><H2>Now Playing: $file</H2>"
-     . &hFooter;
+     and return hHeader( "Play FileNo", $hh ) . &br 
+     . h(2,"Now Playing: $file" ) . &hFooter;
    wf( $log, $file );
    playback($file);
 };
@@ -78,7 +74,8 @@ get '/stop' => sub {
    srand;
    my $hh = request->host;
    stopit();
-   return &hHeader( "Stop", $hh ) . "<BR><H2>Stopping...</H2>" . &hFooter;
+   return hHeader( "Stop", $hh ) . &br 
+   . h(2, "Stopping..." ) . &hFooter;
 };
 
 get '/ff' => sub {
@@ -89,8 +86,8 @@ get '/ff' => sub {
       my $idx = ( ( &first( $fn, @files ) ) + 1 );
       wf( $log, $files[$idx] );
       fork
-        and return &hHeader( "Fast Forward", $hh )
-        . "<BR><H2>Skipping Track...</H2><BR><H3>Next up: $files[$idx]</H3>"
+        and return hHeader( "Fast Forward", $hh ) . &br 
+        . h( 2, "Skipping Track..." ) . &br . h( 3, "Next up: $files[$idx]" ) 
         . &hFooter;
       playback( $files[$idx] );
    }
@@ -102,7 +99,7 @@ get '/rewind' => sub {
    if ( -s $log ) {
       stopit();
       fork
-        and return &hHeader( "Rewinding...", $hh ) . &hFooter;
+        and return hHeader( "Rewinding...", $hh ) . &hFooter;
       playback($fn);
    }
 };
@@ -111,7 +108,7 @@ get '/current' => sub {
    my $hh = request->host . "/current";
    my $fn = rf( $log, { chomp => 1 } );
 
-   return &hHeader( "Now Playing", $hh ) . "Now Playing: $fn" . &hFooter;
+   return hHeader( "Now Playing", $hh ) . "Now Playing: $fn" . &hFooter;
 
 };
 
@@ -134,16 +131,16 @@ sub bgplayback {
             wf( $log, $next );
             `pkill aplaymidi`;
             $next =~ s/(\W)/\\$1/g;
-            midikill();
+            &midikill;
             `$apmargs $next`;
-            bgplayback();
+            &bgplayback;
          }
          else {
-            stopit();
+            &stopit;
          }
       }
       else {
-         stopit();
+         &stopit;
       }
    }
 }
@@ -152,7 +149,7 @@ sub stopit {
    $pn = 0;
    wf( $log, "" );
    `pkill aplaymidi`;
-   midikill();
+   &midikill;
 }
 
 sub midikill {
@@ -207,6 +204,30 @@ sub hHeader {
 
 sub hFooter {
    return "</CENTER></FONT></BODY></HTML>";
+}
+
+sub h {
+ my $i = shift;
+ return "<H$i>@_</H$i>";
+}
+
+sub href {
+  my $ref = shift;
+  my $inner = shift;
+  return "<A HREF=\"$ref\">$inner</A>";
+}
+
+sub iframe { 
+  my $p = shift;
+  return "<IFRAME SRC=\"$p\" @_></IFRAME>"
+}
+
+sub img {
+  return "<IMG SRC=\"@_\">";
+}
+
+sub br {
+  return "<BR>";
 }
 
 start;
