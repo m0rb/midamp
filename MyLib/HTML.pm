@@ -43,4 +43,4 @@ sub br {
    return "<BR>";
 }
 
-start;
+1;
