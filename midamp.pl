@@ -2,7 +2,7 @@
 use strict;
 use warnings;
 use utf8;
-use v5.12;
+
 use File::Basename;
 use lib dirname($0);
 use MyLib::Functions;
@@ -11,10 +11,11 @@ use Config::Tiny;
 use File::Slurp qw(:all);
 use Getopt::Long;
 use Dancer2;
+
 my $config = Config::Tiny->read( dirname($0) . "/config.ini" );
 our $device = $config->{'midamp'}->{'device'};
 
-our ( $port, $hwid, $randfile, $playlist );
+our ( $port, $hwid, $randfile, $playlist, @files );
 
 GetOptions(
    "port|p"         => \$port,
@@ -30,16 +31,15 @@ our $apmargs = "aplaymidi -p$port";
 our $amargs  = "amidi -p$hwid";
 our $log     = "log.txt";
 our $pn      = 0;
-our @files;
 
 if ( defined $playlist ) {
    our $plays = Config::Tiny->read("$playlist")
      or die "Error reading playlist file.";
-   foreach ( values %{ $plays->{'files'} } ) {
-      push @files, $_;
+   my $index = 0;
+   while ( ( my ( $k, $v ) ) = each( %{ $plays->{'playlist'} } ) ) {
+      push @files, $v if ( $k =~ /file\d/i );
    }
 }
-
 else {
    @files = `ls *.mid *.MID`;
 }
