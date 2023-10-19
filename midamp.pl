@@ -18,10 +18,16 @@ our $device = $config->{'midamp'}->{'device'};
 our ( $port, $hwid, $randfile, $playlist, @files );
 
 GetOptions(
+<<<<<<< HEAD
    "port|p"         => \$port,
    "hwid|h"         => \$hwid,
    "device|d"       => \$device,
    "playlist|pls=s" => \$playlist
+=======
+   "port|p=s"   => \$port,
+   "hwid|h=s"   => \$hwid,
+   "device|d=s" => \$device
+>>>>>>> d5219cd (Getopt::Long fail)
 );
 
 $port ||= mididev( "port", $device );
